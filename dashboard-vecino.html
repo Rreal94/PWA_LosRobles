@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Los Robles – Panel del Vecino</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+  <!-- ========== ENCABEZADO FIJO ========== -->
+  <header class="dashboard-header">
+    <div class="header-top">
+      <div class="header-info">
+        <span class="header-logo">🏠</span>
+        <div class="header-textos">
+          <!-- app.js llena estos campos con el nombre real del usuario -->
+          <h1 id="nombreUsuario">Cargando...</h1>
+          <p id="tipoUsuario">Vecino · Residencial Los Robles</p>
+        </div>
+      </div>
+      <button class="btn-cerrar-sesion" id="btnCerrarSesion">
+        🚪 Cerrar sesión
+      </button>
+    </div>
+
+    <!-- Menú de navegación entre secciones -->
+    <nav class="header-nav">
+      <button class="nav-btn activo" id="btn-inicio"
+              onclick="mostrarSeccion('inicio')">
+        🏠 Inicio
+      </button>
+      <button class="nav-btn" id="btn-pago"
+              onclick="mostrarSeccion('pago')">
+        💰 Pagar cuota
+      </button>
+      <button class="nav-btn" id="btn-historial"
+              onclick="mostrarSeccion('historial')">
+        📋 Mis pagos
+      </button>
+      <button class="nav-btn" id="btn-emergencias"
+              onclick="mostrarSeccion('emergencias')">
+        🆘 Emergencias
+      </button>
+    </nav>
+  </header>
+
+  <!-- ========== CONTENIDO PRINCIPAL ========== -->
+  <main class="dashboard-contenido">
+
+    <!-- SECCIÓN 1: Inicio / Resumen del vecino -->
+    <!-- vecino.js genera el contenido de esta sección -->
+    <section class="seccion" id="sec-inicio"></section>
+
+    <!-- SECCIÓN 2: Pago de cuota mensual (US-003) -->
+    <section class="seccion" id="sec-pago" style="display:none;"></section>
+
+    <!-- SECCIÓN 3: Historial de pagos -->
+    <section class="seccion" id="sec-historial" style="display:none;"></section>
+
+    <!-- SECCIÓN 4: Directorio de emergencias (US-005) -->
+    <section class="seccion" id="sec-emergencias" style="display:none;"></section>
+
+  </main>
+
+  <!-- Scripts: el orden importa -->
+  <!-- 1. datos.js: inicializa el sistema y expone las funciones de datos -->
+  <script src="js/datos.js"></script>
+  <!-- 2. auth.js: maneja sesión y cierre de sesión -->
+  <script src="js/auth.js"></script>
+  <!-- 3. vecino.js: carga el contenido de cada sección del vecino -->
+  <script src="js/vecino.js"></script>
+
+</body>
+</html>

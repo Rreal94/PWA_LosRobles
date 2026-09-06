@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Los Robles – Iniciar sesión</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body class="login-pagina">
+
+  <div class="login-card">
+
+    <!-- Encabezado con el nombre del proyecto -->
+    <div class="login-header">
+      <span class="icono-app">🏘️</span>
+      <h1>Residencial Los Robles</h1>
+      <p>Sistema de Gestión Vecinal</p>
+    </div>
+
+    <!-- ── PANEL DE LOGIN (se muestra por defecto) ── -->
+    <div class="login-body" id="panelLogin">
+      <h2>Iniciar sesión</h2>
+
+      <form id="formLogin">
+        <div class="campo">
+          <label for="loginCorreo">Correo electrónico</label>
+          <input type="email" id="loginCorreo" placeholder="tu@correo.mx" required>
+        </div>
+
+        <div class="campo">
+          <label for="loginPassword">Contraseña</label>
+          <input type="password" id="loginPassword" placeholder="Tu contraseña" required>
+        </div>
+
+        <!-- Aquí aparece el mensaje de error si los datos son incorrectos -->
+        <div id="errorLogin" class="mensaje-error" style="display:none;"></div>
+
+        <button type="submit" class="btn-primario">
+          Entrar →
+        </button>
+      </form>
+
+      <div class="toggle-form">
+        ¿No tienes cuenta?
+        <button id="btnMostrarRegistro" class="btn-link">Regístrate aquí</button>
+      </div>
+    </div>
+
+    <!-- ── PANEL DE REGISTRO (oculto por defecto) ── -->
+    <div class="login-body" id="panelRegistro" style="display:none;">
+      <h2>Crear cuenta de vecino</h2>
+
+      <form id="formRegistro">
+        <div class="campo">
+          <label for="regNombre">Nombre completo</label>
+          <input type="text" id="regNombre" placeholder="Tu nombre completo" required>
+        </div>
+
+        <div class="campo">
+          <label for="regCorreo">Correo electrónico</label>
+          <input type="email" id="regCorreo" placeholder="tu@correo.mx" required>
+        </div>
+
+        <div class="campo">
+          <label for="regVivienda">Número de vivienda</label>
+          <select id="regVivienda" required>
+            <option value="">-- Selecciona tu casa --</option>
+            <option value="Casa 11">Casa 11</option>
+            <option value="Casa 12">Casa 12</option>
+            <option value="Casa 13">Casa 13</option>
+            <option value="Casa 14">Casa 14</option>
+            <option value="Casa 15">Casa 15</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="regPassword">Contraseña (mínimo 6 caracteres)</label>
+          <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" required>
+        </div>
+
+        <div id="errorRegistro" class="mensaje-error" style="display:none;"></div>
+
+        <button type="submit" class="btn-primario">
+          Crear mi cuenta →
+        </button>
+      </form>
+
+      <div class="toggle-form">
+        ¿Ya tienes cuenta?
+        <button id="btnMostrarLogin" class="btn-link">Iniciar sesión</button>
+      </div>
+    </div>
+
+    <!-- Credenciales de demo para facilitar las pruebas -->
+    <div class="login-footer">
+      <strong>🔑 Credenciales de prueba</strong>
+      <ul>
+        <li>👔 <strong>Admin:</strong> pedro@losrobles.mx / losrobles123</li>
+        <li>🏠 <strong>Vecino:</strong> rosa@losrobles.mx / losrobles123</li>
+        <li>🏠 <strong>Vecino:</strong> jose@losrobles.mx / losrobles123</li>
+      </ul>
+    </div>
+
+  </div><!-- fin login-card -->
+
+  <!-- Cargamos datos.js primero (tiene los datos del sistema) -->
+  <script src="js/datos.js"></script>
+  <!-- Luego auth.js (maneja login y registro, usa datos.js) -->
+  <script src="js/auth.js"></script>
+
+</body>
+</html>
