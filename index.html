@@ -3,110 +3,715 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Los Robles – Iniciar sesión</title>
+  <title>Residencial Los Robles – PWA React 18</title>
   <link rel="stylesheet" href="css/estilos.css">
+  
+  <!-- CDN de React 18, ReactDOM, Babel Standalone y jsPDF para ejecución directa en GitHub Pages -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body class="login-pagina">
+<body>
+  <div id="root"></div>
 
-  <div class="login-card">
+  <script type="text/babel">
+    const { useState, useEffect } = React;
 
-    <!-- Encabezado con el nombre del proyecto -->
-    <div class="login-header">
-      <span class="icono-app">🏘️</span>
-      <h1>Residencial Los Robles</h1>
-      <p>Sistema de Gestión Vecinal</p>
-    </div>
+    // Datos iniciales para Sprint 2
+    const DATOS_INICIALES = {
+      usuarios: [
+        { id: 1, nombre: "Don Pedro García", correo: "pedro@losrobles.mx", password: "losrobles123", tipo: "admin", cargo: "Presidente", vivienda: null, cuotaMensual: null },
+        { id: 2, nombre: "Doña Laura Sánchez", correo: "laura@losrobles.mx", password: "losrobles123", tipo: "admin", cargo: "Tesorera", vivienda: null, cuotaMensual: null },
+        { id: 3, nombre: "Rosa Martínez", correo: "rosa@losrobles.mx", password: "losrobles123", tipo: "vecino", cargo: null, vivienda: "Casa 01", cuotaMensual: 500 },
+        { id: 4, nombre: "José González", correo: "jose@losrobles.mx", password: "losrobles123", tipo: "vecino", cargo: null, vivienda: "Casa 02", cuotaMensual: 500 },
+        { id: 5, nombre: "Marta Pérez", correo: "marta@losrobles.mx", password: "losrobles123", tipo: "vecino", cargo: null, vivienda: "Casa 03", cuotaMensual: 500 },
+        { id: 6, nombre: "Carlos López", correo: "carlos@losrobles.mx", password: "losrobles123", tipo: "vecino", cargo: null, vivienda: "Casa 04", cuotaMensual: 500 },
+        { id: 7, nombre: "Sofía Ramírez", correo: "sofia@losrobles.mx", password: "losrobles123", tipo: "vecino", cargo: null, vivienda: "Casa 05", cuotaMensual: 500 }
+      ],
+      pagos: [
+        { id: 1, usuarioId: 3, nombre: "Rosa Martínez", vivienda: "Casa 01", monto: 500, fecha: "2026-09-02", mes: "Septiembre 2026", referencia: "REF-SEP-001", metodo: "Transferencia SPEI" },
+        { id: 2, usuarioId: 5, nombre: "Marta Pérez", vivienda: "Casa 03", monto: 500, fecha: "2026-09-05", mes: "Septiembre 2026", referencia: "REF-SEP-002", metodo: "Efectivo" },
+        { id: 3, usuarioId: 7, nombre: "Sofía Ramírez", vivienda: "Casa 05", monto: 500, fecha: "2026-09-08", mes: "Septiembre 2026", referencia: "REF-SEP-003", metodo: "Transferencia SPEI" }
+      ],
+      avisos: [
+        {
+          id: 1,
+          titulo: "Mantenimiento general del sistema de bombeo de agua",
+          autor: "Don Pedro García (Presidente)",
+          fecha: "2026-10-06",
+          prioridad: "Alta",
+          contenido: "Estimados vecinos, este jueves 08 de octubre se realizará servicio preventivo a la cisterna y bombas de 09:00 a 14:00 hrs. Se recomienda tomar precauciones con el suministro."
+        },
+        {
+          id: 2,
+          titulo: "Convocatoria a Asamblea General Ordinaria",
+          autor: "Mesa Directiva Los Robles",
+          fecha: "2026-10-04",
+          prioridad: "Media",
+          contenido: "Se convoca a todos los colonos a la asamblea mensual el próximo sábado a las 18:00 hrs en la terraza comunitaria para revisar el corte financiero presentado por Doña Laura."
+        },
+        {
+          id: 3,
+          titulo: "Poda preventiva de árboles y alumbrado en circuito norte",
+          autor: "Comité de Mantenimiento",
+          fecha: "2026-10-01",
+          prioridad: "Baja",
+          contenido: "Cuadrillas del Ayuntamiento de Zapopan realizarán poda de ramas cercanas al cableado eléctrico para evitar interrupciones."
+        }
+      ],
+      fallas: [
+        {
+          id: 1,
+          titulo: "Luminaria apagada en poste 14 frente a parque",
+          reportante: "Rosa Martínez (Casa 01)",
+          fecha: "2026-10-05",
+          categoria: "Alumbrado público",
+          estatus: "En proceso",
+          descripcion: "La lámpara solar no enciende desde el fin de semana, dejando obscura la esquina de juegos infantiles."
+        },
+        {
+          id: 2,
+          titulo: "Falla intermitente en sensor del portón vehicular principal",
+          reportante: "José González (Casa 02)",
+          fecha: "2026-10-07",
+          categoria: "Acceso y Seguridad",
+          estatus: "Reportado",
+          descripcion: "El sensor de proximidad no detecta los tags de algunos residentes al entrar por el carril derecho."
+        }
+      ],
+      emergencias: [
+        { id: 1, nombre: "Policía Municipal Zapopan", telefono: "33-3836-3600", tipo: "Seguridad", icono: "🚔" },
+        { id: 2, nombre: "Bomberos y Protección Civil", telefono: "33-3618-3411", tipo: "Emergencia", icono: "🚒" },
+        { id: 3, nombre: "Cruz Roja Delegación Zapopan", telefono: "33-3634-4444", tipo: "Salud", icono: "🚑" },
+        { id: 4, nombre: "Caseta de Vigilancia Los Robles", telefono: "33-8800-1234", tipo: "Seguridad Privada", icono: "💂" },
+        { id: 5, nombre: "SIAPA (Agua y Alcantarillado)", telefono: "33-3668-2482", tipo: "Servicios", icono: "💧" },
+        { id: 6, nombre: "CFE Reportes de Falla", telefono: "071", tipo: "Servicios", icono: "⚡" }
+      ]
+    };
 
-    <!-- ── PANEL DE LOGIN (se muestra por defecto) ── -->
-    <div class="login-body" id="panelLogin">
-      <h2>Iniciar sesión</h2>
+    // Componente Login
+    function Login({ usuarios, onLogin }) {
+      const [correo, setCorreo] = useState('rosa@losrobles.mx');
+      const [password, setPassword] = useState('losrobles123');
+      const [error, setError] = useState('');
 
-      <form id="formLogin">
-        <div class="campo">
-          <label for="loginCorreo">Correo electrónico</label>
-          <input type="email" id="loginCorreo" placeholder="tu@correo.mx" required>
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        const user = usuarios.find(u => u.correo.toLowerCase() === correo.trim().toLowerCase() && u.password === password);
+        if (!user) {
+          setError('Credenciales incorrectas.');
+          return;
+        }
+        onLogin(user);
+      };
+
+      return (
+        <div className="login-pagina">
+          <div className="login-card">
+            <div className="login-header">
+              <span className="icono-app">🏘️</span>
+              <h1>Residencial Los Robles</h1>
+              <p>Sistema de Gestión Vecinal · Sprint 2 (React 18)</p>
+            </div>
+            <div className="login-body">
+              <h2>Iniciar sesión</h2>
+              <form onSubmit={handleSubmit}>
+                <div className="campo">
+                  <label>Correo electrónico</label>
+                  <input type="email" value={correo} onChange={e => setCorreo(e.target.value)} required />
+                </div>
+                <div className="campo">
+                  <label>Contraseña</label>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+                </div>
+                {error && <div className="mensaje-error">{error}</div>}
+                <button type="submit" className="btn-primario">Entrar al Sistema →</button>
+              </form>
+            </div>
+            <div className="login-footer">
+              <strong>🔑 Roles Scrum para Demostración</strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+                <button type="button" className="btn-demo" onClick={() => onLogin(usuarios[0])}>
+                  👔 Entrar como Don Pedro (Presidente / Admin)
+                </button>
+                <button type="button" className="btn-demo" onClick={() => onLogin(usuarios[1])}>
+                  💼 Entrar como Doña Laura (Tesorera / Admin)
+                </button>
+                <button type="button" className="btn-demo" onClick={() => onLogin(usuarios[2])}>
+                  🏠 Entrar como Rosa Martínez (Vecino / Casa 01)
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+      );
+    }
 
-        <div class="campo">
-          <label for="loginPassword">Contraseña</label>
-          <input type="password" id="loginPassword" placeholder="Tu contraseña" required>
+    // Componente Dashboard Vecino
+    function DashboardVecino({ usuario, pagos, avisos, fallas, onNavegar }) {
+      const pagoActual = pagos.find(p => p.usuarioId === usuario.id && p.mes === 'Octubre 2026');
+
+      return (
+        <div className="dashboard-vecino">
+          <div className="tarjeta-bienvenida">
+            <h2>Hola, {usuario.nombre} 👋</h2>
+            <p>Residente de <strong>{usuario.vivienda}</strong> · Fraccionamiento Los Robles (Zapopan)</p>
+          </div>
+
+          <div className="grid-resumen" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', margin: '20px 0' }}>
+            <div className="card-kpi" style={{ background: pagoActual ? '#F0FDF4' : '#FFFBEB', border: pagoActual ? '1px solid #BBF7D0' : '1px solid #FDE68A', padding: '16px', borderRadius: '8px' }}>
+              <span style={{ fontSize: '12px', color: '#64748B', textTransform: 'uppercase', fontWeight: 'bold' }}>Cuota de Octubre 2026</span>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', margin: '6px 0', color: pagoActual ? '#166534' : '#B45309' }}>
+                {pagoActual ? 'Al Corriente ($500)' : 'Pendiente ($500)'}
+              </div>
+              <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#475569' }}>
+                {pagoActual ? `Cubierto el ${pagoActual.fecha} (${pagoActual.metodo})` : 'Vence el 10 de octubre. Realiza tu pago digital.'}
+              </p>
+              <button className="btn-primario" style={{ width: '100%', fontSize: '13px' }} onClick={() => onNavegar('pagos')}>
+                {pagoActual ? '📄 Ver Comprobante' : '💳 Pagar Cuota Ahora'}
+              </button>
+            </div>
+
+            <div className="card-kpi" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', padding: '16px', borderRadius: '8px' }}>
+              <span style={{ fontSize: '12px', color: '#64748B', textTransform: 'uppercase', fontWeight: 'bold' }}>Avisos de la Mesa Directiva</span>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', margin: '6px 0', color: '#1E293B' }}>
+                {avisos.length} Comunicados
+              </div>
+              <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#475569' }}>
+                Último: {avisos[0] ? avisos[0].titulo.slice(0, 36) + '...' : 'Sin avisos'}
+              </p>
+              <button className="btn-secundario" style={{ width: '100%', fontSize: '13px' }} onClick={() => onNavegar('avisos')}>
+                📢 Ver Tablón Oficial
+              </button>
+            </div>
+
+            <div className="card-kpi" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', padding: '16px', borderRadius: '8px' }}>
+              <span style={{ fontSize: '12px', color: '#64748B', textTransform: 'uppercase', fontWeight: 'bold' }}>Mantenimiento y Reportes</span>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', margin: '6px 0', color: '#1E293B' }}>
+                {fallas.length} Reportes
+              </div>
+              <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#475569' }}>
+                Reporta fallas en luminarias, portón o áreas verdes.
+              </p>
+              <button className="btn-secundario" style={{ width: '100%', fontSize: '13px' }} onClick={() => onNavegar('fallas')}>
+                🛠️ Reportar Incidencia
+              </button>
+            </div>
+          </div>
         </div>
+      );
+    }
 
-        <!-- Aquí aparece el mensaje de error si los datos son incorrectos -->
-        <div id="errorLogin" class="mensaje-error" style="display:none;"></div>
+    // Componente PagoCuotas con generador de PDF (US-003 refinada)
+    function PagoCuotas({ usuario, pagos, onRegistrarPago }) {
+      const [metodo, setMetodo] = useState('Transferencia SPEI');
+      const [folio, setFolio] = useState('');
+      const pagoActual = pagos.find(p => p.usuarioId === usuario.id && p.mes === 'Octubre 2026');
 
-        <button type="submit" class="btn-primario">
-          Entrar →
-        </button>
-      </form>
+      const handlePagar = (e) => {
+        e.preventDefault();
+        const ref = folio.trim() || `SPEI-${Date.now().toString().slice(-6)}`;
+        const nuevoPago = {
+          id: Date.now(),
+          usuarioId: usuario.id,
+          nombre: usuario.nombre,
+          vivienda: usuario.vivienda,
+          monto: 500,
+          fecha: new Date().toISOString().split('T')[0],
+          mes: 'Octubre 2026',
+          referencia: ref,
+          metodo: metodo
+        };
+        onRegistrarPago(nuevoPago);
+      };
 
-      <div class="toggle-form">
-        ¿No tienes cuenta?
-        <button id="btnMostrarRegistro" class="btn-link">Regístrate aquí</button>
-      </div>
-    </div>
+      const descargarPDF = (pago) => {
+        if (window.jspdf && window.jspdf.jsPDF) {
+          const doc = new window.jspdf.jsPDF();
+          doc.setFillColor(31, 78, 120);
+          doc.rect(0, 0, 210, 35, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(18);
+          doc.text("RESIDENCIAL LOS ROBLES", 105, 18, { align: 'center' });
+          doc.setFontSize(11);
+          doc.text("Comprobante Oficial de Pago de Cuota de Mantenimiento", 105, 27, { align: 'center' });
 
-    <!-- ── PANEL DE REGISTRO (oculto por defecto) ── -->
-    <div class="login-body" id="panelRegistro" style="display:none;">
-      <h2>Crear cuenta de vecino</h2>
+          doc.setTextColor(33, 33, 33);
+          doc.setFontSize(11);
+          doc.text(`Folio Oficial: ${pago.referencia}`, 20, 50);
+          doc.text(`Fecha de Emisión: ${pago.fecha}`, 140, 50);
+          doc.line(20, 55, 190, 55);
 
-      <form id="formRegistro">
-        <div class="campo">
-          <label for="regNombre">Nombre completo</label>
-          <input type="text" id="regNombre" placeholder="Tu nombre completo" required>
+          doc.text("DATOS DEL RESIDENTE:", 20, 65);
+          doc.setFontSize(10);
+          doc.text(`Nombre del Residente: ${pago.nombre}`, 25, 75);
+          doc.text(`Ubicación de Vivienda: ${pago.vivienda}`, 25, 83);
+          doc.text(`Periodo Correspondiente: ${pago.mes}`, 25, 91);
+          doc.text(`Método de Pago: ${pago.metodo}`, 25, 99);
+
+          doc.setFillColor(240, 244, 248);
+          doc.rect(20, 110, 170, 30, 'F');
+          doc.setFontSize(12);
+          doc.setTextColor(17, 85, 204);
+          doc.text(`MONTO PAGADO: $${pago.monto}.00 MXN`, 105, 125, { align: 'center' });
+          doc.setFontSize(9);
+          doc.setTextColor(100, 116, 139);
+          doc.text("(Quinientos pesos 00/100 M.N. — Cuota mensual ordinaria)", 105, 133, { align: 'center' });
+
+          doc.setTextColor(33, 33, 33);
+          doc.setFontSize(9);
+          doc.text("__________________________________________", 105, 175, { align: 'center' });
+          doc.text("Doña Laura Sánchez — Tesorera de la Mesa Directiva", 105, 182, { align: 'center' });
+          doc.text("Colonia Residencial Los Robles · Zapopan, Jalisco", 105, 188, { align: 'center' });
+
+          doc.save(`Recibo_${pago.vivienda.replace(' ', '_')}_Octubre_2026.pdf`);
+        } else {
+          alert(`Comprobante generado: Folio ${pago.referencia}`);
+        }
+      };
+
+      const misPagos = pagos.filter(p => p.usuarioId === usuario.id);
+
+      return (
+        <div className="modulo-pago">
+          <div className="card-seccion">
+            <div className="card-header">
+              <h2>💳 Módulo de Pago de Cuota (US-003 Refinada)</h2>
+              <span className="badge-sprint">Sprint 2 · React 18</span>
+            </div>
+
+            {pagoActual ? (
+              <div className="alerta-exito">
+                <div style={{ fontSize: '28px' }}>✅</div>
+                <div>
+                  <h3>¡Tu cuota de Octubre 2026 está pagada!</h3>
+                  <p>Monto cubierto: <strong>$500.00 MXN</strong> | Folio: <code>{pagoActual.referencia}</code></p>
+                  <button className="btn-secundario" style={{ marginTop: '10px' }} onClick={() => descargarPDF(pagoActual)}>
+                    📄 Descargar Recibo Oficial en PDF
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handlePagar} style={{ marginTop: '16px' }}>
+                <div className="resumen-cobro">
+                  <div><span>Periodo:</span><strong>Octubre 2026</strong></div>
+                  <div><span>Vivienda:</span><strong>{usuario.vivienda}</strong></div>
+                  <div><span>Cuota ordinaria:</span><strong className="monto-destacado">$500.00 MXN</strong></div>
+                </div>
+                <div className="campo">
+                  <label>Método de pago</label>
+                  <select value={metodo} onChange={e => setMetodo(e.target.value)}>
+                    <option value="Transferencia SPEI">Transferencia SPEI (BBVA / STP)</option>
+                    <option value="Tarjeta de Débito/Crédito">Tarjeta Débito/Crédito en línea</option>
+                    <option value="Efectivo en Administración">Efectivo en Administración</option>
+                  </select>
+                </div>
+                <div className="campo">
+                  <label>Folio bancario (Opcional)</label>
+                  <input type="text" value={folio} onChange={e => setFolio(e.target.value)} placeholder="Ej. SPEI-984321" />
+                </div>
+                <button type="submit" className="btn-primario">Confirmar y Pagar $500.00 MXN →</button>
+              </form>
+            )}
+          </div>
+
+          <div className="card-seccion" style={{ marginTop: '20px' }}>
+            <h3>📜 Historial de Cuotas</h3>
+            <table className="tabla-registros">
+              <thead>
+                <tr><th>Periodo</th><th>Fecha</th><th>Método</th><th>Folio</th><th>Monto</th><th>Acción</th></tr>
+              </thead>
+              <tbody>
+                {misPagos.map(p => (
+                  <tr key={p.id}>
+                    <td><strong>{p.mes}</strong></td>
+                    <td>{p.fecha}</td>
+                    <td>{p.metodo}</td>
+                    <td><code>{p.referencia}</code></td>
+                    <td><span className="badge-verde">${p.monto}.00</span></td>
+                    <td><button className="btn-link" onClick={() => descargarPDF(p)}>📄 Recibo PDF</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+      );
+    }
 
-        <div class="campo">
-          <label for="regCorreo">Correo electrónico</label>
-          <input type="email" id="regCorreo" placeholder="tu@correo.mx" required>
+    // Componente Tablón de Avisos (US-006 adelantada)
+    function TablonAvisos({ usuario, avisos, onPublicarAviso }) {
+      const [mostrarForm, setMostrarForm] = useState(false);
+      const [titulo, setTitulo] = useState('');
+      const [prioridad, setPrioridad] = useState('Media');
+      const [contenido, setContenido] = useState('');
+
+      const esAdmin = usuario && usuario.tipo === 'admin';
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        onPublicarAviso({
+          id: Date.now(),
+          titulo: titulo.trim(),
+          autor: `${usuario.nombre} (${usuario.cargo || 'Directiva'})`,
+          fecha: new Date().toISOString().split('T')[0],
+          prioridad: prioridad,
+          contenido: contenido.trim()
+        });
+        setTitulo('');
+        setContenido('');
+        setMostrarForm(false);
+      };
+
+      return (
+        <div className="modulo-avisos">
+          <div className="card-seccion">
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2>📢 Tablón de Avisos Oficiales (US-006)</h2>
+                <p style={{ margin: '4px 0 0 0', color: '#64748B', fontSize: '13px' }}>
+                  Comunicados de Don Pedro y la Mesa Directiva para Los Robles
+                </p>
+              </div>
+              {esAdmin && (
+                <button className="btn-primario" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={() => setMostrarForm(!mostrarForm)}>
+                  {mostrarForm ? '✕ Cancelar' : '➕ Publicar Aviso'}
+                </button>
+              )}
+            </div>
+
+            {esAdmin && mostrarForm && (
+              <form onSubmit={handleSubmit} style={{ margin: '16px 0', padding: '16px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                <div className="campo">
+                  <label>Título del comunicado</label>
+                  <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} required />
+                </div>
+                <div className="campo">
+                  <label>Prioridad</label>
+                  <select value={prioridad} onChange={e => setPrioridad(e.target.value)}>
+                    <option value="Alta">🔴 Alta (Urgente)</option>
+                    <option value="Media">🟡 Media (Informativo)</option>
+                    <option value="Baja">🟢 Baja (General)</option>
+                  </select>
+                </div>
+                <div className="campo">
+                  <label>Contenido</label>
+                  <textarea rows="3" value={contenido} onChange={e => setContenido(e.target.value)} required></textarea>
+                </div>
+                <button type="submit" className="btn-primario">Publicar en Tablón →</button>
+              </form>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+              {avisos.map(a => (
+                <div key={a.id} style={{ padding: '16px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderLeft: a.prioridad === 'Alta' ? '4px solid #DC2626' : a.prioridad === 'Media' ? '4px solid #F59E0B' : '4px solid #10B981', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#1E293B' }}>{a.titulo}</h3>
+                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', background: a.prioridad === 'Alta' ? '#FEE2E2' : '#FEF3C7', color: a.prioridad === 'Alta' ? '#991B1B' : '#92400E' }}>
+                      Prioridad {a.prioridad}
+                    </span>
+                  </div>
+                  <p style={{ margin: '8px 0', fontSize: '14px', color: '#475569', lineHeight: '1.4' }}>{a.contenido}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94A3B8' }}>
+                    <span>✍️ {a.autor}</span>
+                    <span>📅 {a.fecha}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+      );
+    }
 
-        <div class="campo">
-          <label for="regVivienda">Número de vivienda</label>
-          <select id="regVivienda" required>
-            <option value="">-- Selecciona tu casa --</option>
-            <option value="Casa 11">Casa 11</option>
-            <option value="Casa 12">Casa 12</option>
-            <option value="Casa 13">Casa 13</option>
-            <option value="Casa 14">Casa 14</option>
-            <option value="Casa 15">Casa 15</option>
-          </select>
+    // Componente Reporte de Fallas (US-008)
+    function ReporteFallas({ usuario, fallas, onRegistrarFalla }) {
+      const [mostrarForm, setMostrarForm] = useState(false);
+      const [titulo, setTitulo] = useState('');
+      const [categoria, setCategoria] = useState('Alumbrado público');
+      const [descripcion, setDescripcion] = useState('');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        onRegistrarFalla({
+          id: Date.now(),
+          titulo: titulo.trim(),
+          reportante: `${usuario.nombre} (${usuario.vivienda || 'Vecino'})`,
+          fecha: new Date().toISOString().split('T')[0],
+          categoria: categoria,
+          estatus: 'Reportado',
+          descripcion: descripcion.trim()
+        });
+        setTitulo('');
+        setDescripcion('');
+        setMostrarForm(false);
+      };
+
+      return (
+        <div className="modulo-fallas">
+          <div className="card-seccion">
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2>🛠️ Reporte de Fallas Comunitarias (US-008)</h2>
+                <p style={{ margin: '4px 0 0 0', color: '#64748B', fontSize: '13px' }}>
+                  Atención a luminarias, portón eléctrico y áreas comunes
+                </p>
+              </div>
+              <button className="btn-primario" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={() => setMostrarForm(!mostrarForm)}>
+                {mostrarForm ? '✕ Cancelar' : '➕ Levantar Reporte'}
+              </button>
+            </div>
+
+            {mostrarForm && (
+              <form onSubmit={handleSubmit} style={{ margin: '16px 0', padding: '16px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                <div className="campo">
+                  <label>Título de la falla</label>
+                  <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} required />
+                </div>
+                <div className="campo">
+                  <label>Categoría</label>
+                  <select value={categoria} onChange={e => setCategoria(e.target.value)}>
+                    <option value="Alumbrado público">💡 Alumbrado público</option>
+                    <option value="Acceso y Seguridad">🚪 Portón eléctrico y caseta</option>
+                    <option value="Agua y Drenaje">💧 Agua y drenaje</option>
+                    <option value="Áreas verdes">🌳 Jardinería y juegos</option>
+                  </select>
+                </div>
+                <div className="campo">
+                  <label>Descripción del problema</label>
+                  <textarea rows="3" value={descripcion} onChange={e => setDescripcion(e.target.value)} required></textarea>
+                </div>
+                <button type="submit" className="btn-primario">Registrar Reporte →</button>
+              </form>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+              {fallas.map(f => (
+                <div key={f.id} style={{ padding: '14px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <h4 style={{ margin: 0, color: '#0F172A', fontSize: '15px' }}>{f.titulo}</h4>
+                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', background: f.estatus === 'Resuelto' ? '#DCFCE7' : '#FEF3C7', color: f.estatus === 'Resuelto' ? '#166534' : '#92400E' }}>
+                      ● {f.estatus}
+                    </span>
+                  </div>
+                  <p style={{ margin: '6px 0', fontSize: '13.5px', color: '#475569' }}>{f.descripcion}</p>
+                  <div style={{ fontSize: '12px', color: '#94A3B8' }}>
+                    📂 {f.categoria} · 👤 {f.reportante} · 📅 {f.fecha}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+      );
+    }
 
-        <div class="campo">
-          <label for="regPassword">Contraseña (mínimo 6 caracteres)</label>
-          <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" required>
+    // Componente Dashboard Admin
+    function DashboardAdmin({ usuario, usuarios, pagos }) {
+      const vecinos = usuarios.filter(u => u.tipo === 'vecino');
+      const pagosOctubre = pagos.filter(p => p.mes === 'Octubre 2026');
+      const totalRecaudado = pagosOctubre.reduce((acc, p) => acc + p.monto, 0);
+
+      return (
+        <div className="dashboard-admin">
+          <div className="tarjeta-bienvenida">
+            <h2>Panel de la Mesa Directiva 👔</h2>
+            <p>Bienvenido, <strong>{usuario.nombre}</strong> ({usuario.cargo}) · Residencial Los Robles</p>
+          </div>
+
+          <div className="grid-resumen" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', margin: '20px 0' }}>
+            <div className="card-kpi" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', padding: '16px', borderRadius: '8px' }}>
+              <span style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: 'bold' }}>Recaudación Octubre</span>
+              <div style={{ fontSize: '26px', fontWeight: 'bold', margin: '6px 0', color: '#166534' }}>
+                ${totalRecaudado.toLocaleString()} MXN
+              </div>
+              <span style={{ fontSize: '12px', color: '#64748B' }}>Meta: ${(vecinos.length * 500).toLocaleString()} MXN</span>
+            </div>
+
+            <div className="card-kpi" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', padding: '16px', borderRadius: '8px' }}>
+              <span style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: 'bold' }}>Vecinos al Corriente</span>
+              <div style={{ fontSize: '26px', fontWeight: 'bold', margin: '6px 0', color: '#1E293B' }}>
+                {pagosOctubre.length} / {vecinos.length} Casas
+              </div>
+              <span style={{ fontSize: '12px', color: '#16A34A' }}>Cuotas confirmadas</span>
+            </div>
+          </div>
+
+          <div className="card-seccion">
+            <h3>📋 Padrón de Residentes y Estatus de Cuotas</h3>
+            <table className="tabla-registros">
+              <thead>
+                <tr><th>Vivienda</th><th>Residente</th><th>Correo</th><th>Estado Octubre</th><th>Folio</th></tr>
+              </thead>
+              <tbody>
+                {vecinos.map(v => {
+                  const p = pagosOctubre.find(pg => pg.usuarioId === v.id);
+                  return (
+                    <tr key={v.id}>
+                      <td><strong>{v.vivienda}</strong></td>
+                      <td>{v.nombre}</td>
+                      <td>{v.correo}</td>
+                      <td>
+                        <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '12px', fontWeight: 'bold', background: p ? '#DCFCE7' : '#FEE2E2', color: p ? '#166534' : '#991B1B' }}>
+                          {p ? '✅ Al corriente' : '❌ Adeudo'}
+                        </span>
+                      </td>
+                      <td>{p ? <code>{p.referencia}</code> : <span style={{ color: '#94A3B8' }}>Sin pago</span>}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
+      );
+    }
 
-        <div id="errorRegistro" class="mensaje-error" style="display:none;"></div>
+    // Componente Emergencias SOS
+    function DirectorioSOS({ emergencias }) {
+      return (
+        <div className="modulo-sos">
+          <div className="card-seccion">
+            <div className="card-header">
+              <h2>🚨 Directorio Telefónico de Emergencias (US-005)</h2>
+              <span className="badge-sprint">Zapopan, Jalisco</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', marginTop: '16px' }}>
+              {emergencias.map(item => (
+                <div key={item.id} style={{ padding: '14px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ fontSize: '28px' }}>{item.icono}</div>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '14px', color: '#1E293B' }}>{item.nombre}</h4>
+                    <a href={`tel:${item.telefono}`} style={{ color: '#1D4ED8', fontWeight: 'bold', fontSize: '13px' }}>
+                      📞 {item.telefono}
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
-        <button type="submit" class="btn-primario">
-          Crear mi cuenta →
-        </button>
-      </form>
+    // Componente Raíz de la Aplicación
+    function App() {
+      const [usuarios, setUsuarios] = useState(() => {
+        const g = localStorage.getItem('lr_usuarios_v2');
+        return g ? JSON.parse(g) : DATOS_INICIALES.usuarios;
+      });
+      const [pagos, setPagos] = useState(() => {
+        const g = localStorage.getItem('lr_pagos_v2');
+        return g ? JSON.parse(g) : DATOS_INICIALES.pagos;
+      });
+      const [avisos, setAvisos] = useState(() => {
+        const g = localStorage.getItem('lr_avisos_v2');
+        return g ? JSON.parse(g) : DATOS_INICIALES.avisos;
+      });
+      const [fallas, setFallas] = useState(() => {
+        const g = localStorage.getItem('lr_fallas_v2');
+        return g ? JSON.parse(g) : DATOS_INICIALES.fallas;
+      });
+      const [usuarioActual, setUsuarioActual] = useState(() => {
+        const s = sessionStorage.getItem('lr_sesion_v2');
+        return s ? JSON.parse(s) : null;
+      });
+      const [vista, setVista] = useState('inicio');
 
-      <div class="toggle-form">
-        ¿Ya tienes cuenta?
-        <button id="btnMostrarLogin" class="btn-link">Iniciar sesión</button>
-      </div>
-    </div>
+      useEffect(() => { localStorage.setItem('lr_usuarios_v2', JSON.stringify(usuarios)); }, [usuarios]);
+      useEffect(() => { localStorage.setItem('lr_pagos_v2', JSON.stringify(pagos)); }, [pagos]);
+      useEffect(() => { localStorage.setItem('lr_avisos_v2', JSON.stringify(avisos)); }, [avisos]);
+      useEffect(() => { localStorage.setItem('lr_fallas_v2', JSON.stringify(fallas)); }, [fallas]);
 
-    <!-- Credenciales de demo para facilitar las pruebas -->
-    <div class="login-footer">
-      <strong>🔑 Credenciales de prueba</strong>
-      <ul>
-        <li>👔 <strong>Admin:</strong> pedro@losrobles.mx / losrobles123</li>
-        <li>🏠 <strong>Vecino:</strong> rosa@losrobles.mx / losrobles123</li>
-        <li>🏠 <strong>Vecino:</strong> jose@losrobles.mx / losrobles123</li>
-      </ul>
-    </div>
+      const handleLogin = (user) => {
+        setUsuarioActual(user);
+        sessionStorage.setItem('lr_sesion_v2', JSON.stringify(user));
+        setVista('inicio');
+      };
 
-  </div><!-- fin login-card -->
+      const handleLogout = () => {
+        setUsuarioActual(null);
+        sessionStorage.removeItem('lr_sesion_v2');
+        setVista('inicio');
+      };
 
-  <!-- Cargamos datos.js primero (tiene los datos del sistema) -->
-  <script src="js/datos.js"></script>
-  <!-- Luego auth.js (maneja login y registro, usa datos.js) -->
-  <script src="js/auth.js"></script>
+      if (!usuarioActual) {
+        return <Login usuarios={usuarios} onLogin={handleLogin} />;
+      }
 
+      const esAdmin = usuarioActual.tipo === 'admin';
+
+      return (
+        <div className="app-container">
+          <header className="navbar-superior">
+            <div className="navbar-brand">
+              <span className="logo-icono">🏘️</span>
+              <div>
+                <h1>Residencial Los Robles</h1>
+                <span className="subtitulo-navbar">Zapopan, Jalisco · PWA React 18</span>
+              </div>
+            </div>
+            <div className="navbar-usuario">
+              <div className="badge-usuario">
+                <strong>{usuarioActual.nombre}</strong>
+                <span className="rol-tag">{esAdmin ? `👔 ${usuarioActual.cargo}` : `🏠 ${usuarioActual.vivienda}`}</span>
+              </div>
+              <button className="btn-logout" onClick={handleLogout}>🚪 Salir</button>
+            </div>
+          </header>
+
+          <nav className="menu-navegacion">
+            <button className={`nav-tab ${vista === 'inicio' ? 'activo' : ''}`} onClick={() => setVista('inicio')}>
+              {esAdmin ? '📊 Panel Financiero' : '🏠 Inicio'}
+            </button>
+            {!esAdmin && (
+              <button className={`nav-tab ${vista === 'pagos' ? 'activo' : ''}`} onClick={() => setVista('pagos')}>
+                💳 Pagar Cuota (US-003)
+              </button>
+            )}
+            <button className={`nav-tab ${vista === 'avisos' ? 'activo' : ''}`} onClick={() => setVista('avisos')}>
+              📢 Tablón de Avisos (US-006)
+            </button>
+            <button className={`nav-tab ${vista === 'fallas' ? 'activo' : ''}`} onClick={() => setVista('fallas')}>
+              🛠️ Reportes de Fallas (US-008)
+            </button>
+            <button className={`nav-tab ${vista === 'sos' ? 'activo' : ''}`} onClick={() => setVista('sos')}>
+              🚨 Directorio SOS
+            </button>
+          </nav>
+
+          <main className="main-content">
+            {vista === 'inicio' && (
+              esAdmin ? (
+                <DashboardAdmin usuario={usuarioActual} usuarios={usuarios} pagos={pagos} onNavegar={setVista} />
+              ) : (
+                <DashboardVecino usuario={usuarioActual} pagos={pagos} avisos={avisos} fallas={fallas} onNavegar={setVista} />
+              )
+            )}
+            {vista === 'pagos' && !esAdmin && (
+              <PagoCuotas usuario={usuarioActual} pagos={pagos} onRegistrarPago={(p) => setPagos([p, ...pagos])} />
+            )}
+            {vista === 'avisos' && (
+              <TablonAvisos usuario={usuarioActual} avisos={avisos} onPublicarAviso={(a) => setAvisos([a, ...avisos])} />
+            )}
+            {vista === 'fallas' && (
+              <ReporteFallas usuario={usuarioActual} fallas={fallas} onRegistrarFalla={(f) => setFallas([f, ...fallas])} />
+            )}
+            {vista === 'sos' && (
+              <DirectorioSOS emergencias={DATOS_INICIALES.emergencias} />
+            )}
+          </main>
+
+          <footer className="footer-app">
+            <p>Residencial Los Robles PWA · Sprint 2 (React 18 & Scrum) · Universidad de Guadalajara</p>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
