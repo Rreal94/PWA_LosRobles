@@ -112,7 +112,7 @@
             <div className="login-header">
               <span className="icono-app">🏘️</span>
               <h1>Residencial Los Robles</h1>
-              <p>Sistema de Gestión Vecinal · Sprint 2 (React 18)</p>
+              <p>Sistema de Gestión Vecinal · Sprint 2 & 3 (React 18)</p>
             </div>
             <div className="login-body">
               <h2>Iniciar sesión</h2>
@@ -343,11 +343,20 @@
     // Componente Tablón de Avisos (US-006 adelantada)
     function TablonAvisos({ usuario, avisos, onPublicarAviso }) {
       const [mostrarForm, setMostrarForm] = useState(false);
+      const [filtroPrioridad, setFiltroPrioridad] = useState('Todos');
+      const [filtroBusqueda, setFiltroBusqueda] = useState('');
       const [titulo, setTitulo] = useState('');
       const [prioridad, setPrioridad] = useState('Media');
       const [contenido, setContenido] = useState('');
 
       const esAdmin = usuario && usuario.tipo === 'admin';
+
+      const avisosFiltrados = avisos.filter(a => {
+        const cumplePrioridad = filtroPrioridad === 'Todos' || a.prioridad === filtroPrioridad;
+        const cumpleTexto = a.titulo.toLowerCase().includes(filtroBusqueda.toLowerCase()) || 
+                            a.contenido.toLowerCase().includes(filtroBusqueda.toLowerCase());
+        return cumplePrioridad && cumpleTexto;
+      });
 
       const handleSubmit = (e) => {
         e.preventDefault();
@@ -426,7 +435,7 @@
     }
 
     // Componente Reporte de Fallas (US-008)
-    function ReporteFallas({ usuario, fallas, onRegistrarFalla }) {
+    function ReporteFallas({ usuario, fallas, onRegistrarFalla, onActualizarEstatus }) {
       const [mostrarForm, setMostrarForm] = useState(false);
       const [titulo, setTitulo] = useState('');
       const [categoria, setCategoria] = useState('Alumbrado público');
@@ -696,7 +705,14 @@
               <TablonAvisos usuario={usuarioActual} avisos={avisos} onPublicarAviso={(a) => setAvisos([a, ...avisos])} />
             )}
             {vista === 'fallas' && (
-              <ReporteFallas usuario={usuarioActual} fallas={fallas} onRegistrarFalla={(f) => setFallas([f, ...fallas])} />
+              <ReporteFallas 
+                usuario={usuarioActual} 
+                fallas={fallas} 
+                onRegistrarFalla={(f) => setFallas([f, ...fallas])} 
+                onActualizarEstatus={(id, nuevoEstatus) => {
+                  setFallas(fallas.map(item => item.id === id ? { ...item, estatus: nuevoEstatus } : item));
+                }}
+              />
             )}
             {vista === 'sos' && (
               <DirectorioSOS emergencias={DATOS_INICIALES.emergencias} />
