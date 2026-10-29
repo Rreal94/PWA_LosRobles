@@ -7,6 +7,8 @@ import PagoCuotas from './components/PagoCuotas.jsx';
 import TablonAvisos from './components/TablonAvisos.jsx';
 import ReporteFallas from './components/ReporteFallas.jsx';
 import DirectorioSOS from './components/DirectorioSOS.jsx';
+import PanelBaseDatos from './components/PanelBaseDatos.jsx';
+import { cargarDatos } from './api/cliente.js';
 
 export default function App() {
   const [usuarios, setUsuarios] = useState(() => {
@@ -35,6 +37,8 @@ export default function App() {
   });
 
   const [vista, setVista] = useState('inicio');
+  const [origenDatos, setOrigenDatos] = useState('local');
+  const [cargandoBD, setCargandoBD] = useState(true);
 
   // Sincronización en localStorage
   useEffect(() => {
@@ -52,6 +56,31 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('lr_fallas_v2', JSON.stringify(fallas));
   }, [fallas]);
+
+  // Hidratación desde MySQL: si la API responde, la app deja de usar datos locales
+  useEffect(() => {
+    let activo = true;
+
+    cargarDatos()
+      .then((datos) => {
+        if (!activo) return;
+        if (datos.usuarios.length) setUsuarios(datos.usuarios);
+        if (datos.avisos.length) setAvisos(datos.avisos);
+        if (datos.fallas.length) setFallas(datos.fallas);
+        if (datos.pagos.length) setPagos(datos.pagos);
+        setOrigenDatos('mysql');
+      })
+      .catch(() => {
+        if (activo) setOrigenDatos('local');
+      })
+      .finally(() => {
+        if (activo) setCargandoBD(false);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const handleLogin = (user) => {
     setUsuarioActual(user);
@@ -111,14 +140,24 @@ export default function App() {
         </div>
 
         <div className="navbar-usuario">
+          <span
+            className="rol-tag"
+            style={{
+              background: origenDatos === 'mysql' ? '#DCFCE7' : '#FEE2E2',
+              color: origenDatos === 'mysql' ? '#166534' : '#991B1B',
+              fontWeight: 'bold'
+            }}
+          >
+            {cargandoBD ? '◌ Consultando MySQL' : origenDatos === 'mysql' ? '● MySQL conectado' : '● Modo local'}
+          </span>
           <div className="badge-usuario">
             <strong>{usuarioActual.nombre}</strong>
             <span className="rol-tag">
-              {esAdmin ? `👔 ${usuarioActual.cargo}` : `🏠 ${usuarioActual.vivienda}`}
+              {esAdmin ? usuarioActual.cargo : usuarioActual.vivienda}
             </span>
           </div>
           <button className="btn-logout" onClick={handleLogout} title="Cerrar sesión">
-            🚪 Salir
+            Salir
           </button>
         </div>
       </header>
@@ -160,6 +199,13 @@ export default function App() {
           onClick={() => setVista('sos')}
         >
           🚨 Directorio SOS
+        </button>
+
+        <button
+          className={`nav-tab ${vista === 'bd' ? 'activo' : ''}`}
+          onClick={() => setVista('bd')}
+        >
+          Base de Datos
         </button>
       </nav>
 
@@ -212,11 +258,13 @@ export default function App() {
         {vista === 'sos' && (
           <DirectorioSOS emergencias={DATOS_INICIALES.emergencias} />
         )}
+
+        {vista === 'bd' && <PanelBaseDatos />}
       </main>
 
       <footer className="footer-app">
         <p>
-          Residencial Los Robles PWA · Sprint 2 (React 18 & Scrum) · Universidad de Guadalajara
+          Residencial Los Robles PWA · Sprint 4 (React 18 + MySQL) · Universidad de Guadalajara
         </p>
       </footer>
     </div>

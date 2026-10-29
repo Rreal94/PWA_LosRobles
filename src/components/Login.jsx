@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { api } from '../api/cliente.js';
 
 export default function Login({ usuarios, onLogin, onRegistro }) {
   const [esRegistro, setEsRegistro] = useState(false);
@@ -8,15 +9,29 @@ export default function Login({ usuarios, onLogin, onRegistro }) {
   const [vivienda, setVivienda] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmitLogin = (e) => {
+  const handleSubmitLogin = async (e) => {
     e.preventDefault();
     setError('');
-    const user = usuarios.find(u => u.correo.toLowerCase() === correo.trim().toLowerCase() && u.password === password);
-    if (!user) {
-      setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
+
+    // Primero se valida contra la base de datos con bcrypt
+    try {
+      const { usuario } = await api.login(correo.trim(), password);
+      onLogin(usuario);
       return;
+    } catch (err) {
+      if (err.message !== 'Credenciales incorrectas.') {
+        // Si la API no responde, se conserva el modo local de la demo
+        const local = usuarios.find(
+          u => u.correo.toLowerCase() === correo.trim().toLowerCase() && u.password === password
+        );
+        if (local) {
+          onLogin(local);
+          return;
+        }
+      }
     }
-    onLogin(user);
+
+    setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
   };
 
   const handleSubmitRegistro = (e) => {
@@ -44,11 +59,19 @@ export default function Login({ usuarios, onLogin, onRegistro }) {
     onRegistro(nuevoUsuario);
   };
 
-  const handleDemoLogin = (correoDemo, passDemo) => {
+  const handleDemoLogin = async (correoDemo, passDemo) => {
     setCorreo(correoDemo);
     setPassword(passDemo);
-    const user = usuarios.find(u => u.correo === correoDemo);
-    if (user) onLogin(user);
+    setError('');
+    try {
+      const { usuario } = await api.login(correoDemo, passDemo);
+      onLogin(usuario);
+      return;
+    } catch (err) {
+      const local = usuarios.find(u => u.correo === correoDemo);
+      if (local) onLogin(local);
+      else setError('No se pudo iniciar sesión con la cuenta de demostración.');
+    }
   };
 
   return (
@@ -57,7 +80,7 @@ export default function Login({ usuarios, onLogin, onRegistro }) {
         <div className="login-header">
           <span className="icono-app">🏘️</span>
           <h1>Residencial Los Robles</h1>
-          <p>Sistema de Gestión Vecinal · Sprint 2 (React 18)</p>
+          <p>Sistema de Gestión Vecinal · Sprint 4 (React 18 + MySQL)</p>
         </div>
 
         {!esRegistro ? (
@@ -130,11 +153,11 @@ export default function Login({ usuarios, onLogin, onRegistro }) {
                 <label>Número de vivienda</label>
                 <select value={vivienda} onChange={(e) => setVivienda(e.target.value)} required>
                   <option value="">-- Selecciona tu casa --</option>
-                  <option value="Casa 08">Casa 08</option>
-                  <option value="Casa 09">Casa 09</option>
-                  <option value="Casa 10">Casa 10</option>
-                  <option value="Casa 11">Casa 11</option>
-                  <option value="Casa 12">Casa 12</option>
+                  <option value="Casa 101">Casa 101</option>
+                  <option value="Casa 102">Casa 102</option>
+                  <option value="Casa 205">Casa 205</option>
+                  <option value="Casa 312">Casa 312</option>
+                  <option value="Casa 418">Casa 418</option>
                 </select>
               </div>
 
@@ -171,30 +194,30 @@ export default function Login({ usuarios, onLogin, onRegistro }) {
             <button
               type="button"
               className="btn-demo"
-              onClick={() => handleDemoLogin('pedro@losrobles.mx', 'losrobles123')}
+              onClick={() => handleDemoLogin('pedro.gonzalez@losrobles.mx', 'losrobles123')}
             >
               👔 Entrar como Don Pedro (Presidente / Admin)
             </button>
             <button
               type="button"
               className="btn-demo"
-              onClick={() => handleDemoLogin('laura@losrobles.mx', 'losrobles123')}
+              onClick={() => handleDemoLogin('laura.gomez@losrobles.mx', 'losrobles123')}
             >
               💼 Entrar como Doña Laura (Tesorera / Admin)
             </button>
             <button
               type="button"
               className="btn-demo"
-              onClick={() => handleDemoLogin('rosa@losrobles.mx', 'losrobles123')}
+              onClick={() => handleDemoLogin('jorge.navarro@losrobles.mx', 'losrobles123')}
             >
-              🏠 Entrar como Rosa Martínez (Vecino / Casa 01)
+              🏠 Entrar como Jorge Navarro (Vecino / Casa 312)
             </button>
             <button
               type="button"
               className="btn-demo"
-              onClick={() => handleDemoLogin('jose@losrobles.mx', 'losrobles123')}
+              onClick={() => handleDemoLogin('mariana.ochoa@losrobles.mx', 'losrobles123')}
             >
-              🏠 Entrar como José González (Vecino / Casa 02)
+              🏠 Entrar como Mariana Ochoa (Vecina / Casa 418)
             </button>
           </div>
         </div>

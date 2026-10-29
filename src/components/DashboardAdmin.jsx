@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 export default function DashboardAdmin({ usuario, usuarios, pagos, onNavegar }) {
   const [filtroEstado, setFiltroEstado] = useState('Todos');
 
-  const vecinos = usuarios.filter(u => u.tipo === 'vecino');
+  const vecinos = usuarios;
   const pagosOctubre = pagos.filter(p => p.mes === 'Octubre 2026');
 
   const totalRecaudado = pagosOctubre.reduce((acc, p) => acc + p.monto, 0);
